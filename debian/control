@@ -1,0 +1,12 @@
+Source: ros-jazzy-rcf-hardware-interface
+Section: misc
+Priority: optional
+Maintainer: "廖伦稼" <liaolunjia@gmail.com>
+Build-Depends: debhelper (>= 9.0.0), ros-jazzy-ament-cmake, ros-jazzy-ament-cmake-gtest <!nocheck>, ros-jazzy-control-msgs, ros-jazzy-controller-interface, ros-jazzy-hardware-interface, ros-jazzy-rclcpp, ros-jazzy-ros-workspace
+Homepage: https://index.ros.org/p/rcf_hardware_interface/#jazzy
+Standards-Version: 3.9.2
+
+Package: ros-jazzy-rcf-hardware-interface
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ros-jazzy-control-msgs, ros-jazzy-controller-interface, ros-jazzy-hardware-interface, ros-jazzy-rclcpp, ros-jazzy-ros-workspace
+Description: RCF extensions to ros2_control hardware interfaces: control mode definitions and lightweight joint command/state handle types.
