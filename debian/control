@@ -1,0 +1,12 @@
+Source: ros-jazzy-rcf-fake-driver
+Section: misc
+Priority: optional
+Maintainer: "廖伦稼" <liaolunjia@gmail.com>
+Build-Depends: debhelper (>= 9.0.0), ros-jazzy-ament-cmake, ros-jazzy-ament-index-cpp, ros-jazzy-rcf-standard-driver-interface, ros-jazzy-ros-workspace
+Homepage: https://index.ros.org/p/rcf_fake_driver/#jazzy
+Standards-Version: 3.9.2
+
+Package: ros-jazzy-rcf-fake-driver
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ros-jazzy-ament-index-cpp, ros-jazzy-rcf-standard-driver-interface, ros-jazzy-ros-workspace
+Description: Fake servo driver plugin for testing rcf_standard_hardware without real hardware.
