@@ -1,0 +1,8 @@
+ros-jazzy-rcf-standard-hardware (0.0.1-1bookworm) bookworm; urgency=high
+
+  * 基于伺服的 RCF 机器人 ros2_control system 硬件接口，含 topic 版 IMU 硬件组件
+  * Contributors: 廖伦稼
+
+ -- "廖伦稼" <liaolunjia@gmail.com>  Fri, 13 Nov 2026 00:00:00 -0000
+
+
