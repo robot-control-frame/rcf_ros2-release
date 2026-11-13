@@ -1,0 +1,12 @@
+Source: ros-jazzy-rcf-common
+Section: misc
+Priority: optional
+Maintainer: "廖伦稼" <liaolunjia@gmail.com>
+Build-Depends: debhelper (>= 9.0.0), libeigen3-dev, ros-jazzy-ament-cmake, ros-jazzy-ament-cmake-gen-version-h, ros-jazzy-geometry-msgs, ros-jazzy-joint-limits, ros-jazzy-rclcpp, ros-jazzy-ros-workspace
+Homepage: https://index.ros.org/p/rcf_common/#jazzy
+Standards-Version: 3.9.2
+
+Package: ros-jazzy-rcf-common
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libeigen3-dev, ros-jazzy-geometry-msgs, ros-jazzy-joint-limits, ros-jazzy-rclcpp, ros-jazzy-ros-workspace
+Description: Utility library for the RCF control framework: math and orientation helpers, Eigen type aliases, low-pass/ramp/Kalman filters, shared-memory double buffer and YAML transmission parser.
