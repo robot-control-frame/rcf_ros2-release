@@ -1,0 +1,8 @@
+ros-jazzy-rcf-joint-limits-interface (0.0.1-1bookworm) bookworm; urgency=high
+
+  * 位置/速度/力矩指令的关节限位，并按当前控制模式区别处理
+  * Contributors: 廖伦稼
+
+ -- "廖伦稼" <liaolunjia@gmail.com>  Fri, 13 Nov 2026 00:00:00 -0000
+
+
