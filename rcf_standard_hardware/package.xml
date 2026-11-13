@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>rcf_standard_hardware</name>
+  <version>0.0.1</version>
+  <description>ros2_control system hardware interface for RCF servo-based robots, including a topic based IMU hardware component.</description>
+
+  <maintainer email="liaolunjia@gmail.com">廖伦稼</maintainer>
+  <license>Apache-2.0</license>
+  <url type="repository">https://github.com/robot-control-frame/rcf_ros2</url>
+  <url type="bugtracker">https://github.com/robot-control-frame/rcf_ros2/issues</url>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>backward_ros</depend>
+  <depend>rcf_hardware_interface</depend>
+  <depend>hardware_interface</depend>
+  <depend>pluginlib</depend>
+  <depend>rclcpp</depend>
+  <depend>rclcpp_lifecycle</depend>
+  <depend>transmission_interface</depend>
+  <depend>rcf_standard_driver_interface</depend>
+  <depend>rcf_transmission_interface</depend>
+  <depend>rcf_joint_limits_interface</depend>
+  <depend>realtime_tools</depend>
+  <depend>control_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>rcf_common</depend>
+
+  <exec_depend>rcf_fake_driver</exec_depend>
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

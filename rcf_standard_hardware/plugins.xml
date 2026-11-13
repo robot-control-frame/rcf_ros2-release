@@ -1,0 +1,16 @@
+<library path="rcf_standard_hardware">
+  <class name="rcf_standard_hardware/RcfStandardHardware"
+    type="rcf_standard_hardware::RcfStandardHardware"
+    base_class_type="hardware_interface::SystemInterface">
+    <description>
+      The rcf standard hardware interface-type.
+    </description>
+  </class>
+  <class name="rcf_standard_hardware/TopicImuHardware"
+    type="rcf_standard_hardware::TopicImuHardware"
+    base_class_type="hardware_interface::SensorInterface">
+    <description>
+      IMU sensor hardware that reads sensor_msgs/Imu from a configurable topic.
+    </description>
+  </class>
+</library>
