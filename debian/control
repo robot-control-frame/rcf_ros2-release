@@ -1,0 +1,12 @@
+Source: ros-jazzy-rcf-transmission-interface
+Section: misc
+Priority: optional
+Maintainer: "廖伦稼" <liaolunjia@gmail.com>
+Build-Depends: debhelper (>= 9.0.0), libfmt-dev, libyaml-cpp-dev, ros-jazzy-ament-cmake, ros-jazzy-hardware-interface, ros-jazzy-pluginlib, ros-jazzy-transmission-interface, ros-jazzy-ros-workspace
+Homepage: https://index.ros.org/p/rcf_transmission_interface/#jazzy
+Standards-Version: 3.9.2
+
+Package: ros-jazzy-rcf-transmission-interface
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libfmt-dev, libyaml-cpp-dev, ros-jazzy-hardware-interface, ros-jazzy-pluginlib, ros-jazzy-transmission-interface, ros-jazzy-ros-workspace
+Description: Pluginlib transmission implementation that loads simple transmission parameters from the robot description.
