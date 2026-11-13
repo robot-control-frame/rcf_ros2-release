@@ -1,0 +1,8 @@
+ros-jazzy-rcf-hardware-interface (0.0.1-1bookworm) bookworm; urgency=high
+
+  * ros2_control 硬件接口扩展：控制模式定义、轻量 joint command/state handle 类型
+  * Contributors: 廖伦稼
+
+ -- "廖伦稼" <liaolunjia@gmail.com>  Fri, 13 Nov 2026 00:00:00 -0000
+
+
