@@ -10,6 +10,7 @@ find_package(ament_cmake REQUIRED)
 find_package(ament_index_cpp REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(pluginlib REQUIRED)
+find_package(rcf_hardware_interface REQUIRED)
 find_package(rcf_standard_driver_interface REQUIRED)
 find_package(yaml-cpp REQUIRED)
 # ##############################################################################
@@ -22,7 +23,7 @@ target_include_directories(
                          $<INSTALL_INTERFACE:include>)
 target_link_libraries(${PROJECT_NAME} rclcpp::rclcpp yaml-cpp::yaml-cpp)
 ament_target_dependencies(${PROJECT_NAME} ament_index_cpp pluginlib
-                          rcf_standard_driver_interface)
+                          rcf_hardware_interface rcf_standard_driver_interface)
 
 install(DIRECTORY include/ DESTINATION include)
 install(
