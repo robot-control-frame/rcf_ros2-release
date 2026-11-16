@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>rcf_hardware_interface</name>
-  <version>0.0.1</version>
+  <version>0.0.2</version>
   <description>RCF extensions to ros2_control hardware interfaces: control mode definitions and lightweight joint command/state handle types.</description>
   <maintainer email="liaolunjia@gmail.com">廖伦稼</maintainer>
   <license>Apache-2.0</license>
