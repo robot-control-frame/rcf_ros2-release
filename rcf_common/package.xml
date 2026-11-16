@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>rcf_common</name>
-  <version>0.0.1</version>
+  <version>0.0.2</version>
   <description>Utility library for the RCF control framework: math and orientation helpers, Eigen type aliases, low-pass/ramp/Kalman filters, shared-memory double buffer and YAML transmission parser.</description>
   <maintainer email="liaolunjia@gmail.com">廖伦稼</maintainer>
   <license>Apache-2.0</license>

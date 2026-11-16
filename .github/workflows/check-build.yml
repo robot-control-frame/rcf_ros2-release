@@ -1,0 +1,118 @@
+name: check-build
+
+# 定期查 packages.ros.org 的 apt 索引，确认 rosdistro PR 合并、农场编完之后
+# ros-jazzy-rcf 这一套真的进了主仓库，然后开一个 issue 通知维护者。
+#
+# 为什么用 issue：GitHub 会给被 assign / 被 @ 的人发通知（邮件 + 手机 App），
+# 不依赖任何第三方服务，也不需要额外 secret。
+#
+# 出包之后这个 workflow 会一直跑但什么都不做（幂等：issue 已存在就跳过），
+# 稳定之后可以删掉或改成手动触发。
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: check-build
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 查 apt 主仓库索引
+        id: apt
+        shell: bash
+        run: |
+          set -uo pipefail
+
+          distro=noble
+          arch=amd64
+          base="http://packages.ros.org/ros2/ubuntu/dists/${distro}/main/binary-${arch}"
+
+          if ! curl -fsSL --max-time 90 --retry 3 "${base}/Packages.gz" -o /tmp/Packages.gz; then
+            echo "::error::拉取 apt 索引失败（网络问题，下次再试）"
+            exit 1
+          fi
+          idx="$(gunzip -c /tmp/Packages.gz)"
+
+          # 期望版本 = 源码仓最新的 v* tag
+          expected="$(git tag --list 'v*' --sort=-v:refname | head -n1 | sed 's/^v//')"
+          echo "期望版本: $expected"
+
+          pkgs="rcf rcf_common rcf_fake_driver rcf_hardware_interface rcf_joint_limits_interface rcf_standard_driver_interface rcf_standard_hardware rcf_transmission_interface"
+
+          missing=""
+          for p in $pkgs; do
+            deb="ros-jazzy-${p//_/-}"
+            ver="$(printf '%s\n' "$idx" | awk -v want="Package: $deb" '
+              $0 == want { inside = 1; next }
+              inside && /^Version:/ { print $2; exit }
+              inside && /^$/ { inside = 0 }
+            ')"
+            if [ -z "$ver" ]; then
+              missing="$missing $deb"
+            else
+              echo "$deb -> $ver"
+            fi
+          done
+
+          if [ -n "$missing" ]; then
+            echo "::notice::还没进主仓库:$missing"
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::8 个包都已进入 apt 主仓库（$expected）"
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+          echo "expected=$expected" >> "$GITHUB_OUTPUT"
+
+      - name: 开 issue 通知
+        if: steps.apt.outputs.ready == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        run: |
+          set -uo pipefail
+          label="build-done"
+          # --label 在 label 不存在时会直接失败，先保证它存在
+          gh label create "$label" --repo "${{ github.repository }}" \
+            --color "0e8a16" --description "包已进入 apt 主仓库的通知" 2>/dev/null || true
+
+          open_issues="$(gh issue list --repo "${{ github.repository }}" --state open \
+            --label "$label" --json number --jq '.[].number' || true)"
+          if [ -n "$open_issues" ]; then
+            echo "::notice::已经有未关闭的通知 issue（#$open_issues），跳过"
+            exit 0
+          fi
+
+          v="${{ steps.apt.outputs.expected }}"
+          body="$(printf '%s\n' \
+            "@liaolunjia 农场编完了，\`ros-jazzy-rcf\` 这套已经出现在 packages.ros.org 主仓库里。" \
+            "" \
+            'sudo apt update && sudo apt install ros-jazzy-rcf' \
+            "" \
+            "验证：\`apt-cache policy ros-jazzy-rcf\` 版本应为 \`$v-1noble.…\`，\`ros2 pkg prefix rcf_standard_hardware\` 应返回 /opt/ros/jazzy。" \
+            "" \
+            "- 包索引页 <https://index.ros.org/p/rcf/>" \
+            "- 农场 job <https://build.ros2.org/job/Jbin_uN64__rcf__ubuntu_noble_amd64__binary/>" \
+            "" \
+            "确认装好之后把这个 issue 关掉即可。" )"
+
+          gh issue create \
+            --repo "${{ github.repository }}" \
+            --title "ros-jazzy-rcf $v 已进入 apt 主仓库，可以安装了" \
+            --label "$label" \
+            --assignee liaolunjia \
+            --body "$body"
+          echo "::notice::已开 issue 通知"
