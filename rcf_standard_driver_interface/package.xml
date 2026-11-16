@@ -1,0 +1,17 @@
+<package format="3">
+  <name>rcf_standard_driver_interface</name>
+  <version>0.0.1</version>
+  <description>Abstract driver plugin interface for RCF robots, covering servo enable/disable, servo/force-torque/IMU state and command exchange.</description>
+
+  <maintainer email="liaolunjia@gmail.com">廖伦稼</maintainer>
+
+  <license>Apache-2.0</license>
+  <url type="repository">https://github.com/robot-control-frame/rcf_ros2</url>
+  <url type="bugtracker">https://github.com/robot-control-frame/rcf_ros2/issues</url>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
