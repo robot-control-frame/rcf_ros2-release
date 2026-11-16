@@ -259,6 +259,28 @@ hardware_interface::return_type RcfStandardHardware::read(const rclcpp::Time& ti
     transmission->actuator_to_joint();
   }
 
+  // 每周期写入锁位指令：关节指令位置默认等于当前关节反馈位置。
+  // 有控制器时，控制器在 update() 里写 cmd_position 覆盖；没有控制器时保持当前位置。
+  for (auto& joint : joint_data_vector) {
+    if (servo_init_) {
+      joint->control_mode = rcf_hardware_interface::to_interface_value(rcf_hardware_interface::ControlMode::BEGIN);
+      joint->position_command = joint->position;
+      joint->velocity_command = 0.0;
+      joint->effort_command = 0.0;
+      joint->v1 = 0.0;
+      joint->v2 = 0.0;
+      joint->v3 = 0.0;
+    } else {
+      joint->control_mode = rcf_hardware_interface::to_interface_value(rcf_hardware_interface::ControlMode::NOMODE);
+      joint->position_command = joint->position;
+      joint->velocity_command = 0.0;
+      joint->effort_command = 0.0;
+      joint->v1 = 0.0;
+      joint->v2 = 0.0;
+      joint->v3 = 0.0;
+    }
+  }
+
   auto imu_states = driver_->get_imu_state();
   for (auto& item : imu_states) {
     auto iter = id2imu_index_.find(item.id);
@@ -320,65 +342,66 @@ hardware_interface::return_type RcfStandardHardware::write(const rclcpp::Time& /
       rcf_standard_driver_interface::ServoCommand servo_cmd;
       servo_cmd.stamp = get_clock()->now();
       servo_cmd.id = act_data_vector[i]->id;
-      if (is_control_mode_value(act_data_vector[i]->ctrl_mode, rcf_hardware_interface::ControlMode::BEGIN)) {
-        if (!is_control_mode_value(act_data_vector[i]->last_ctrl_mode, rcf_hardware_interface::ControlMode::BEGIN)) {
-          act_data_vector[i]->cmd_pos_keep = act_data_vector[i]->pos;
-        }
-        act_data_vector[i]->cmd_pos = act_data_vector[i]->cmd_pos_keep;
-        servo_cmd.mode = rcf_standard_driver_interface::ControlModes::BEGIN;
-        act_data_vector[i]->last_ctrl_mode = act_data_vector[i]->ctrl_mode;
-      } else if (is_control_mode_value(act_data_vector[i]->ctrl_mode,
-                                       rcf_hardware_interface::ControlMode::MODE_EFFORT)) {
-        servo_cmd.mode = rcf_standard_driver_interface::ControlModes::MODE_EFFORT;
-        act_data_vector[i]->last_ctrl_mode = act_data_vector[i]->ctrl_mode;
-      } else if (is_control_mode_value(act_data_vector[i]->ctrl_mode,
-                                       rcf_hardware_interface::ControlMode::MODE_VELOCITY)) {
-        servo_cmd.mode = rcf_standard_driver_interface::ControlModes::MODE_VELOCITY;
-        act_data_vector[i]->last_ctrl_mode = act_data_vector[i]->ctrl_mode;
-      } else if (is_control_mode_value(act_data_vector[i]->ctrl_mode,
-                                       rcf_hardware_interface::ControlMode::MODE_POSITION)) {
-        if (use_jump_command_protection_) {
-          // 阶跃指令输出log
-          if (act_data_vector[i]->act_type == ActType::STANDARD_REVOLUTE) {
-            if (std::abs(act_data_vector[i]->cmd_pos - act_data_vector[i]->pos) >=
-                act_data_vector[i]->jump_cmd_threshold) {
-              if ((get_clock()->now() - act_data_vector[i]->last_printf_jump_command_stamp).seconds() >
-                  1.0) {  // 1s内只打印一次
-                RCLCPP_ERROR(get_logger(),
-                             "Servo %s send a jump command, threshold is 0.087rad, current pos: %f, pos cmd: %f, "
-                             "current: %f, err code: %d",
-                             act_data_vector[i]->name.c_str(), act_data_vector[i]->pos, act_data_vector[i]->cmd_pos,
-                             act_data_vector[i]->cur, act_data_vector[i]->status);
-                act_data_vector[i]->last_printf_jump_command_stamp = get_clock()->now();
-              }
-            }
-          } else if (act_data_vector[i]->act_type == ActType::STANDARD_PRISMATIC) {
-            if (std::abs(act_data_vector[i]->cmd_pos - act_data_vector[i]->pos) >=
-                act_data_vector[i]->jump_cmd_threshold) {
-              if ((get_clock()->now() - act_data_vector[i]->last_printf_jump_command_stamp).seconds() > 1.0) {
-                RCLCPP_ERROR(get_logger(),
-                             "Servo %s send a jump command, threshold is 0.002m, current pos: %f, pos cmd: %f, "
-                             "current: %f, err code: %d",
-                             act_data_vector[i]->name.c_str(), act_data_vector[i]->pos, act_data_vector[i]->cmd_pos,
-                             act_data_vector[i]->cur, act_data_vector[i]->status);
-                act_data_vector[i]->last_printf_jump_command_stamp = get_clock()->now();
-              }
-            }
-          } else {
-            // Do nothing
+      const auto control_mode = rcf_hardware_interface::to_control_mode(act_data_vector[i]->ctrl_mode);
+      switch (control_mode) {
+        case rcf_hardware_interface::ControlMode::BEGIN: {
+          if (!is_control_mode_value(act_data_vector[i]->last_ctrl_mode, rcf_hardware_interface::ControlMode::BEGIN)) {
+            act_data_vector[i]->cmd_pos_keep = act_data_vector[i]->pos;
           }
+          act_data_vector[i]->cmd_pos = act_data_vector[i]->cmd_pos_keep;
+          servo_cmd.mode = rcf_hardware_interface::ControlMode::BEGIN;
+          break;
         }
-        servo_cmd.mode = rcf_standard_driver_interface::ControlModes::MODE_POSITION;
-        act_data_vector[i]->last_ctrl_mode = act_data_vector[i]->ctrl_mode;
-      } else if (is_control_mode_value(act_data_vector[i]->ctrl_mode,
-                                       rcf_hardware_interface::ControlMode::MODE_PVT)) {  // PVT mode
-        servo_cmd.mode = rcf_standard_driver_interface::ControlModes::MODE_PVT;
-        act_data_vector[i]->last_ctrl_mode = act_data_vector[i]->ctrl_mode;
-      } else {
-        // 不支持其余模式
-        servo_cmd.mode = rcf_standard_driver_interface::ControlModes::BEGIN;
-        act_data_vector[i]->last_ctrl_mode = act_data_vector[i]->ctrl_mode;
+        case rcf_hardware_interface::ControlMode::MODE_EFFORT:
+          servo_cmd.mode = rcf_hardware_interface::ControlMode::MODE_EFFORT;
+          break;
+        case rcf_hardware_interface::ControlMode::MODE_VELOCITY:
+          servo_cmd.mode = rcf_hardware_interface::ControlMode::MODE_VELOCITY;
+          break;
+        case rcf_hardware_interface::ControlMode::MODE_POSITION: {
+          if (use_jump_command_protection_) {
+            // 阶跃指令输出log
+            if (act_data_vector[i]->act_type == ActType::STANDARD_REVOLUTE) {
+              if (std::abs(act_data_vector[i]->cmd_pos - act_data_vector[i]->pos) >=
+                  act_data_vector[i]->jump_cmd_threshold) {
+                if ((get_clock()->now() - act_data_vector[i]->last_printf_jump_command_stamp).seconds() >
+                    1.0) {  // 1s内只打印一次
+                  RCLCPP_ERROR(get_logger(),
+                               "Servo %s send a jump command, threshold is 0.087rad, current pos: %f, pos cmd: %f, "
+                               "current: %f, err code: %d",
+                               act_data_vector[i]->name.c_str(), act_data_vector[i]->pos, act_data_vector[i]->cmd_pos,
+                               act_data_vector[i]->cur, act_data_vector[i]->status);
+                  act_data_vector[i]->last_printf_jump_command_stamp = get_clock()->now();
+                }
+              }
+            } else if (act_data_vector[i]->act_type == ActType::STANDARD_PRISMATIC) {
+              if (std::abs(act_data_vector[i]->cmd_pos - act_data_vector[i]->pos) >=
+                  act_data_vector[i]->jump_cmd_threshold) {
+                if ((get_clock()->now() - act_data_vector[i]->last_printf_jump_command_stamp).seconds() > 1.0) {
+                  RCLCPP_ERROR(get_logger(),
+                               "Servo %s send a jump command, threshold is 0.002m, current pos: %f, pos cmd: %f, "
+                               "current: %f, err code: %d",
+                               act_data_vector[i]->name.c_str(), act_data_vector[i]->pos, act_data_vector[i]->cmd_pos,
+                               act_data_vector[i]->cur, act_data_vector[i]->status);
+                  act_data_vector[i]->last_printf_jump_command_stamp = get_clock()->now();
+                }
+              }
+            } else {
+              // Do nothing
+            }
+          }
+          servo_cmd.mode = rcf_hardware_interface::ControlMode::MODE_POSITION;
+          break;
+        }
+        case rcf_hardware_interface::ControlMode::MODE_PVT:
+          servo_cmd.mode = rcf_hardware_interface::ControlMode::MODE_PVT;
+          break;
+        default:
+          // 不支持其余模式
+          servo_cmd.mode = rcf_hardware_interface::ControlMode::BEGIN;
+          break;
       }
+      act_data_vector[i]->last_ctrl_mode = act_data_vector[i]->ctrl_mode;
 
       servo_cmd.position = act_data_vector[i]->cmd_pos;
       servo_cmd.velocity = act_data_vector[i]->cmd_vel;
