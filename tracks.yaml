@@ -27,4 +27,4 @@ tracks:
     ros_distro: jazzy
     vcs_type: git
     vcs_uri: https://github.com/robot-control-frame/rcf_ros2
-    version: 0.0.1
+    version: 0.0.2
