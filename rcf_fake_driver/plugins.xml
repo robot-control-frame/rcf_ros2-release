@@ -1,6 +1,0 @@
-<library path="rcf_fake_driver">
-  <class name="rcf_fake_driver/RcfFakeDriver" type="rcf_fake_driver::RcfFakeDriver"
-    base_class_type="rcf_standard_driver_interface::RcfStandardDriverBase">
-    <description>This is a RcfFakeDriver plugin.</description>
-  </class>
-</library>
