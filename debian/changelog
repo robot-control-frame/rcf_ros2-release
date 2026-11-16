@@ -1,0 +1,20 @@
+ros-jazzy-rcf-fake-driver (0.0.2-1noble) noble; urgency=high
+
+  * Feat/rm rcf driver control modes (#13 <https://github.com/robot-control-frame/rcf_ros2/issues/13>)
+    * 删除驱动端冗余的control_mode
+    * 优化imu超时检测逻辑
+    * format
+    ---------
+    Co-authored-by: 廖伦稼 <mailto:liaolunjia@gmail.com>
+  * Contributors: 廖伦稼
+
+ -- "廖伦稼" <liaolunjia@gmail.com>  Mon, 16 Nov 2026 00:00:00 -0000
+
+ros-jazzy-rcf-fake-driver (0.0.1-1noble) noble; urgency=high
+
+  * 假伺服驱动插件，无需真机即可测试 rcf_standard_hardware
+  * Contributors: 廖伦稼
+
+ -- "廖伦稼" <liaolunjia@gmail.com>  Fri, 13 Nov 2026 00:00:00 -0000
+
+
