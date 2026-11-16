@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>rcf_fake_driver</name>
-  <version>0.0.1</version>
+  <version>0.0.2</version>
   <description>Fake servo driver plugin for testing rcf_standard_hardware without real hardware.</description>
 
   <maintainer email="liaolunjia@gmail.com">廖伦稼</maintainer>
@@ -13,6 +13,7 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <depend>ament_index_cpp</depend>
+  <depend>rcf_hardware_interface</depend>
   <depend>rcf_standard_driver_interface</depend>
   <export>
     <build_type>ament_cmake</build_type>
