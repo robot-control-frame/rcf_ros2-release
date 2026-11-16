@@ -30,6 +30,13 @@
 #include "realtime_tools/realtime_buffer.hpp"
 
 namespace rcf_standard_hardware {
+
+/// 回调里带时间戳的 IMU 样本：把「数据」和「接收时刻」绑定在一起，经 RealtimeBuffer 传给 read()。
+struct ImuSample {
+  sensor_msgs::msg::Imu msg;
+  rclcpp::Time stamp{0, 0, RCL_STEADY_TIME};  // 回调接收时刻（STEADY 稳定时钟）
+};
+
 class TopicImuHardware : public hardware_interface::SensorInterface {
  public:
   RCLCPP_SHARED_PTR_DEFINITIONS(TopicImuHardware)
@@ -49,6 +56,9 @@ class TopicImuHardware : public hardware_interface::SensorInterface {
   hardware_interface::CallbackReturn on_activate(const rclcpp_lifecycle::State& previous_state) override;
 
   hardware_interface::CallbackReturn on_deactivate(const rclcpp_lifecycle::State& previous_state) override;
+
+  /// 生命周期错误回调：返回 SUCCESS 以回到 UNCONFIGURED（可恢复），避免一次超时即进入 FINALIZED。
+  hardware_interface::CallbackReturn on_error(const rclcpp_lifecycle::State& previous_state) override;
 
   hardware_interface::return_type read(const rclcpp::Time& time, const rclcpp::Duration& period) override;
 
@@ -70,15 +80,19 @@ class TopicImuHardware : public hardware_interface::SensorInterface {
   rclcpp::Clock::SharedPtr clock_;
 
   std::string imu_topic_{"/imu"};
-  double timeout_threshold_{0.1};
-  bool check_timeout_{false};
+  double timeout_threshold_{0.1};        // 超过该值：判定数据过期/离线（告警 + online=false）
+  double error_timeout_threshold_{3.0};  // 超过该值：read() 返回 ERROR
+  bool check_timeout_{true};             // 默认开启超时检测
   bool hw_init_check_success_{false};
 
   ImuData imu_data_;
-  realtime_tools::RealtimeBuffer<sensor_msgs::msg::Imu> imu_msg_buffer_;
+  realtime_tools::RealtimeBuffer<ImuSample> imu_msg_buffer_;
   std::atomic<bool> imu_received_{false};
-  std::atomic<uint64_t> imu_msg_seq_{0};
-  uint64_t last_read_seq_{0};
+  rclcpp::Time last_recv_time_{0, 0, RCL_STEADY_TIME};  // 最近一条消息的回调接收时刻（STEADY）
+
+  // 导出给上层观测的 double 状态接口（StateInterface 只能挂 double）
+  double online_state_{0.0};
+  double stamp_sec_{0.0};
 
   // 独立 node + spinner，避免依赖 controller_manager executor（RT 调度下回调可能饿死）
   rclcpp::Node::SharedPtr imu_node_;
